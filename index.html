@@ -1,0 +1,177 @@
+<!-- 
+    Mesa County Covid Counter
+    Live Data pulled from Colorado Information Marketplace
+    https://data.colorado.gov/-/Colorado-COVID-19-Positive-Cases-and-Rates-of-Infe/inae-mki6
+
+    Author: Prof. Joshua Abshear
+    Date: November 2020
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Standard Meta Tags for Charset and Responsive Viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title of Our Website -->
+    <title>Mesa County Covid Data Center</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <!-- Inline CSS Styling for a Gradient Background and White Text Color -->
+    <style>
+        body {
+            background-image: linear-gradient(90deg, rgba(42, 154, 181,0.5) 0%, rgba(42, 154, 181,0.5) 16%,transparent 16%, transparent 36%,transparent 36%, transparent 86%,rgba(42, 107, 139,0.5) 86%, rgba(42, 107, 139,0.5) 100%),linear-gradient(0deg, rgb(42, 154, 181) 0%, rgb(42, 154, 181) 38%,transparent 38%, transparent 47%,rgb(41, 201, 223) 47%, rgb(41, 201, 223) 50%,rgb(42, 107, 139) 50%, rgb(42, 107, 139) 100%),linear-gradient(90deg, rgb(255,255,255),rgb(255,255,255));
+        }
+
+        h1,h2,h3,h4 {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .cardTable * {
+            color: white;
+        }
+
+        p {
+            display: inline;
+        }
+    </style>
+    
+</head>
+
+<body>
+
+    <center>
+        <br>
+        <h1>Mesa County Covid Data Center</h1>
+        <br>
+        <h4>Live Data from <a href="https://data.colorado.gov/-/Colorado-COVID-19-Positive-Cases-and-Rates-of-Infe/inae-mki6" target="_blank"><img src="https://data.colorado.gov/api/views/aueg-2dux/files/899cec8a-1f44-473a-aa7e-db784df15d09" width="300px;" alt="Colorado Information Marketplace"></a></h4>
+
+
+        <br>
+        <div class="card-columns" style="margin:10px;">
+            <div class="card">
+                <img class="card-img-top" src="https://www.fda.gov/files/surgical-mask.jpg" alt="">
+                <div class="card-body">
+                    <h4 class="card-title">Mesa County Population</h4>
+                    <p class="card-text" id="population">-</p>
+                </div>
+            </div>
+            <div class="card">
+                <img class="card-img-top" src="https://ewscripps.brightspotcdn.com/63/5c/7db696744a1680623e5a66cdf44c/coronavirus-covid-19-background.jpg" alt="">
+                <div class="card-body">
+                    <h4 class="card-title">Total Positive Cases</h4>
+                    <p class="card-text" id="cases">-</p>
+                </div>
+            </div>
+            <div class="card">
+                <img class="card-img-top" src="https://media.khou.com/assets/KSDK/images/f3a3444d-c8f9-498f-b791-a3d972e15523/f3a3444d-c8f9-498f-b791-a3d972e15523_750x422.jpg"" alt="">
+                <div class="card-body">
+                    <h4 class="card-title">Cases Not Resulting in Death</h4>
+                    <p class="card-text" id="notdeaths">-</p>
+                </div>
+            </div>
+        </div>
+
+        <h4>Total Deaths: <span id="deaths"> - </span></h4>
+        <h4>Deaths Today: <span id="deathsToday"> - </span></h4>
+        
+    </center>
+
+
+    <script>
+
+        // Make an HTTP GET Request to an API and return the raw JSON
+        function makeAPIRequest(requestURL) {
+
+            // Create variable to send our HTTP Request and hold the respond 
+            var xhr = new XMLHttpRequest();
+            var response;
+
+            // Send the HTTP GET Request and wait for a response
+            // Best practice to use Asynchronous XHR Requests, but this is synchronus for simplicity
+            xhr.open("GET", requestURL, false);
+            xhr.onload = function (e) {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+
+                        // If the request completes with a success 200 status code, assign the response
+                        // console.log(xhr.responseText);
+                        response = xhr.responseText
+
+                    } else {
+
+                        // If the request completes with an error status code, log the error
+                        console.error(xhr.statusText);
+
+                    }
+                }
+            };
+            xhr.onerror = function (e) {
+                console.error(xhr.statusText);
+            };
+            xhr.send(null);
+
+            // Return the response
+            return response;
+        }
+
+        // Main -- the code below will be executed when Page loads
+
+        var results = JSON.parse(makeAPIRequest("https://services3.arcgis.com/66aUo8zsujfVXRIT/arcgis/rest/services/Colorado_COVID19_Positive_Cases/FeatureServer/0/query?where=COUNTY%20%3D%20%27MESA%27&outFields=*&outSR=4326&f=json"));
+        results = results.features[0].attributes;
+        
+        document.getElementById("population").innerHTML = results.County_Population.toLocaleString();
+        document.getElementById("cases").innerHTML = results.County_Pos_Cases.toLocaleString();
+
+        var notDeaths = results.County_Pos_Cases - results.County_Deaths;
+        document.getElementById("notdeaths").innerHTML = notDeaths.toLocaleString() + " <b>(" + ((notDeaths / results.County_Pos_Cases)*100).toPrecision(5) + "%)</b>";
+
+        document.getElementById("deaths").innerHTML = results.County_Deaths.toLocaleString();
+        document.getElementById("deathsToday").innerHTML = results.County_Deaths_Change.toLocaleString();
+
+        if (false)
+        {
+        // Get a New Deck of Cards
+        var deck = getDeck();
+
+        // Get URL Parameters if they exist
+        const queryString = window.location.search;
+
+        if (queryString) {
+
+            // If there are URL Parameters, dissect the parameters and get the specified card image
+            getCardFromURLParameters(queryString);
+
+        } else {
+
+            // Otherwise, we get a deck from an API and draw a card
+            console.log("No URL Parameters detected");
+
+            // Draw a Card from the Deck
+            drawCard(deck.deck_id);
+        }
+        }
+
+
+    </script>
+
+    <!-- Optional Bootstrap JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>

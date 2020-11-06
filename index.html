@@ -125,11 +125,11 @@
         var results = JSON.parse(makeAPIRequest("https://services3.arcgis.com/66aUo8zsujfVXRIT/arcgis/rest/services/Colorado_COVID19_Positive_Cases/FeatureServer/0/query?where=COUNTY%20%3D%20%27MESA%27&outFields=*&outSR=4326&f=json"));
         results = results.features[0].attributes;
         
-        document.getElementById("population").innerHTML = results.County_Population.toLocaleString();
-        document.getElementById("cases").innerHTML = results.County_Pos_Cases.toLocaleString();
+        document.getElementById("population").innerHTML = results.County_Population.toLocaleString() + "<br><br>";
+        document.getElementById("cases").innerHTML = results.County_Pos_Cases.toLocaleString() + " <br><b>(" + ((results.County_Pos_Cases / results.County_Population)*100).toPrecision(2) + "% of Population)</b>";;
 
         var notDeaths = results.County_Pos_Cases - results.County_Deaths;
-        document.getElementById("notdeaths").innerHTML = notDeaths.toLocaleString() + " <b>(" + ((notDeaths / results.County_Pos_Cases)*100).toPrecision(5) + "%)</b>";
+        document.getElementById("notdeaths").innerHTML = notDeaths.toLocaleString() + " <br><b>(" + ((notDeaths / results.County_Pos_Cases)*100).toPrecision(5) + "% of Cases)</b>";
 
         document.getElementById("deaths").innerHTML = results.County_Deaths.toLocaleString();
         document.getElementById("deathsToday").innerHTML = results.County_Deaths_Change.toLocaleString();
